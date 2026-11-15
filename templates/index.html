@@ -1,10 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preço de Veículos Usados</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <header class="topo">
+    <a class="marca" href="{{ url_for('index') }}">Preço de Usados</a>
+    <nav>
+      <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('analise') }}" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>Análise</a>
+      <a href="{{ url_for('previsao') }}" {% if request.endpoint == 'previsao' %}aria-current="page"{% endif %}>Previsão</a>
+    </nav>
+  </header>
+  <main>
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensagens %}
+        <div class="aviso {{ categoria }}" role="alert">{{ texto }}</div>
+      {% endfor %}
+    {% endwith %}
+    <h1>Quanto vale um carro usado?</h1>
+<p class="lead">Envie uma base de veículos para ver a análise dos dados ou use o modelo treinado para estimar um preço.</p>
 
+<section class="painel">
+  <h2>1. Enviar CSV</h2>
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload">
+    <label for="arquivo">Arquivo .csv (máx. 20 MB)</label>
+    <input type="file" id="arquivo" name="arquivo" accept=".csv" required>
+    <button type="submit">Enviar e analisar</button>
+  </form>
+  <details>
+    <summary>Colunas obrigatórias do CSV</summary>
+    <p><code>name</code>, <code>year</code>, <code>selling_price</code>, <code>km_driven</code>,
+       <code>fuel</code>, <code>seller_type</code>, <code>transmission</code>, <code>owner</code></p>
+    <p>O separador (vírgula, ponto e vírgula ou tab) é detectado automaticamente.</p>
+  </details>
+</section>
+
+<section class="painel">
+  <h2>2. Prever um preço</h2>
+  <p>Informe ano, quilometragem, combustível e câmbio.</p>
+  <a class="botao" href="{{ url_for('previsao') }}">Ir para a previsão</a>
+</section>
+
+<section class="painel modelo-info">
+  <h2>Modelo em uso</h2>
+  {% if modelo_info %}
+    <p>Treinado com a base <strong>{{ modelo_info.base }}</strong>, versão de entrega
+       <strong>{{ modelo_info.versao }}</strong>{% if modelo_info.data %} (treino em {{ modelo_info.data }}){% endif %}.</p>
+    <dl class="metricas">
+      <div><dt>Algoritmo</dt><dd>{{ modelo_info.algoritmo }}</dd></div>
+      <div><dt>Registros</dt><dd>{{ modelo_info.registros|numero }}</dd></div>
+      <div><dt>Treino / teste</dt><dd>{{ modelo_info.treino|numero }} / {{ modelo_info.teste|numero }}</dd></div>
+      <div><dt>Erro médio (MAE)</dt><dd>{{ modelo_info.mae|rs }}</dd></div>
+      <div><dt>R²</dt><dd>{{ '%.2f'|format(modelo_info.r2) }}</dd></div>
+    </dl>
+  {% else %}
+    <p>Nenhum modelo encontrado. Execute <code>python treinar.py</code> para treiná-lo.</p>
+  {% endif %}
+</section>
+  </main>
+  <footer class="rodape">Trabalho Final · Tema 06 · Preços em rúpias indianas (Rs)</footer>
 </body>
 </html>
