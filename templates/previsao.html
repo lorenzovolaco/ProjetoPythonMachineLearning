@@ -10,9 +10,9 @@
   <header class="topo">
     <a class="marca" href="{{ url_for('index') }}">Preço de Usados</a>
     <nav>
-      <a href="index.html" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Início</a>
-      <a href="analise.html" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>Análise</a>
-      <a href="previsao.html" {% if request.endpoint == 'previsao' %}aria-current="page"{% endif %}>Previsão</a>
+      <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('analise') }}" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>Análise</a>
+      <a href="{{ url_for('previsao') }}" {% if request.endpoint == 'previsao' %}aria-current="page"{% endif %}>Previsão</a>
     </nav>
   </header>
   <main>
