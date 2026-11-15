@@ -1,10 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Análise · Preço de Usados</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <header class="topo">
+    <a class="marca" href="{{ url_for('index') }}">Preço de Usados</a>
+    <nav>
+      <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('analise') }}" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>Análise</a>
+      <a href="{{ url_for('previsao') }}" {% if request.endpoint == 'previsao' %}aria-current="page"{% endif %}>Previsão</a>
+    </nav>
+  </header>
+  <main>
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensagens %}
+        <div class="aviso {{ categoria }}" role="alert">{{ texto }}</div>
+      {% endfor %}
+    {% endwith %}
+    <h1>Análise dos dados</h1>
+<p class="lead">Arquivo: <strong>{{ nome_original }}</strong> · {{ antes|numero }} registros e {{ colunas }} colunas.
+   Depois da limpeza: {{ depois|numero }} registros.</p>
 
+<section class="painel">
+  <h2>Amostra (10 primeiras linhas do arquivo original)</h2>
+  <div class="rolagem">{{ amostra|safe }}</div>
+</section>
+
+<section class="painel">
+  <h2>Diagnóstico da base original</h2>
+  <dl class="metricas">
+    <div><dt>Linhas</dt><dd>{{ diag.linhas|numero }}</dd></div>
+    <div><dt>Colunas</dt><dd>{{ diag.colunas }}</dd></div>
+    <div><dt>Duplicatas</dt><dd>{{ diag.duplicatas|numero }}</dd></div>
+    <div><dt>Preço ≤ 0</dt><dd>{{ diag.preco_invalido|numero }}</dd></div>
+    <div><dt>Km inválido</dt><dd>{{ diag.km_invalido|numero }}</dd></div>
+  </dl>
+  <div class="rolagem">
+    <table class="tabela">
+      <thead><tr><th>Coluna</th><th>Tipo</th><th>Ausentes</th></tr></thead>
+      <tbody>
+        {% for col, tipo in diag.tipos.items() %}
+        <tr><td>{{ col }}</td><td>{{ tipo }}</td><td>{{ diag.ausentes[col] }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="painel">
+  <h2>Limpeza aplicada</h2>
+  <p>O arquivo original é preservado; a versão limpa foi salva em <code>data/carros_limpo.csv</code>.</p>
+  <ul>{% for linha in log %}<li>{{ linha }}</li>{% endfor %}</ul>
+</section>
+
+<section class="painel">
+  <h2>Principais achados</h2>
+  <ul>{% for a in achados %}<li>{{ a }}</li>{% endfor %}</ul>
+</section>
+
+{% for g in graficos %}
+<section class="painel grafico">
+  <h2>{{ g.titulo }}</h2>
+  <img src="data:image/png;base64,{{ g.img }}" alt="Gráfico: {{ g.titulo }}">
+  <p>{{ g.texto }}</p>
+</section>
+{% endfor %}
+
+<section class="painel modelo-info">
+  <h2>Modelo em uso</h2>
+  {% if modelo_info %}
+    <p>Treinado com a base <strong>{{ modelo_info.base }}</strong>, versão de entrega
+       <strong>{{ modelo_info.versao }}</strong>{% if modelo_info.data %} (treino em {{ modelo_info.data }}){% endif %}.</p>
+    <dl class="metricas">
+      <div><dt>Algoritmo</dt><dd>{{ modelo_info.algoritmo }}</dd></div>
+      <div><dt>Registros</dt><dd>{{ modelo_info.registros|numero }}</dd></div>
+      <div><dt>Treino / teste</dt><dd>{{ modelo_info.treino|numero }} / {{ modelo_info.teste|numero }}</dd></div>
+      <div><dt>Erro médio (MAE)</dt><dd>{{ modelo_info.mae|rs }}</dd></div>
+      <div><dt>R²</dt><dd>{{ '%.2f'|format(modelo_info.r2) }}</dd></div>
+    </dl>
+  {% else %}
+    <p>Nenhum modelo encontrado. Execute <code>python treinar.py</code> para treiná-lo.</p>
+  {% endif %}
+</section>
+  </main>
+  <footer class="rodape">Trabalho Final · Tema 06 · Preços em rúpias indianas (Rs)</footer>
 </body>
 </html>

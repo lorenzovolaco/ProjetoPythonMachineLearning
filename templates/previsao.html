@@ -1,10 +1,95 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Previsão · Preço de Usados</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <header class="topo">
+    <a class="marca" href="{{ url_for('index') }}">Preço de Usados</a>
+    <nav>
+      <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('analise') }}" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>Análise</a>
+      <a href="{{ url_for('previsao') }}" {% if request.endpoint == 'previsao' %}aria-current="page"{% endif %}>Previsão</a>
+    </nav>
+  </header>
+  <main>
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensagens %}
+        <div class="aviso {{ categoria }}" role="alert">{{ texto }}</div>
+      {% endfor %}
+    {% endwith %}
+    <h1>Prever o preço</h1>
+<p class="lead">Preencha os dados do veículo. O modelo devolve uma estimativa em rúpias indianas.</p>
 
+{% if erros %}
+<div class="aviso erro" role="alert">
+  <ul>{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="duas-colunas">
+  <form method="post" class="painel formulario" novalidate>
+    <label for="ano">Ano de fabricação</label>
+    <input type="number" id="ano" name="ano" min="{{ ano_min }}" max="{{ ano_max }}"
+           value="{{ form.get('ano', '') }}" placeholder="2015" required>
+
+    <label for="km">Quilometragem (km)</label>
+    <input type="number" id="km" name="km" min="0" max="{{ km_max }}" step="any"
+           value="{{ form.get('km', '') }}" placeholder="60000" required>
+
+    <label for="combustivel">Combustível</label>
+    <select id="combustivel" name="combustivel" required>
+      <option value="" disabled {% if not form.get('combustivel') %}selected{% endif %}>Escolha</option>
+      {% for c in combustiveis %}
+      <option value="{{ c }}" {% if form.get('combustivel') == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="cambio">Câmbio</label>
+    <select id="cambio" name="cambio" required>
+      <option value="" disabled {% if not form.get('cambio') %}selected{% endif %}>Escolha</option>
+      {% for c in cambios %}
+      <option value="{{ c }}" {% if form.get('cambio') == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Calcular preço</button>
+  </form>
+
+  <div>
+    {% if resultado %}
+    <div class="etiqueta" aria-live="polite">
+      <span class="etiqueta-rotulo">Preço previsto</span>
+      <span class="etiqueta-valor">{{ resultado.valor|rs }}</span>
+      <span class="etiqueta-detalhe">{{ resultado.ano }} · {{ resultado.km|numero }} km · {{ resultado.combustivel }} · {{ resultado.cambio }}</span>
+    </div>
+    {% if modelo_info %}
+    <p class="nota">Estimativa com erro médio de cerca de {{ modelo_info.mae|rs }} nos dados de teste. É uma aproximação, não uma avaliação oficial.</p>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<section class="painel modelo-info">
+  <h2>Modelo em uso</h2>
+  {% if modelo_info %}
+    <p>Treinado com a base <strong>{{ modelo_info.base }}</strong>, versão de entrega
+       <strong>{{ modelo_info.versao }}</strong>{% if modelo_info.data %} (treino em {{ modelo_info.data }}){% endif %}.</p>
+    <dl class="metricas">
+      <div><dt>Algoritmo</dt><dd>{{ modelo_info.algoritmo }}</dd></div>
+      <div><dt>Registros</dt><dd>{{ modelo_info.registros|numero }}</dd></div>
+      <div><dt>Treino / teste</dt><dd>{{ modelo_info.treino|numero }} / {{ modelo_info.teste|numero }}</dd></div>
+      <div><dt>Erro médio (MAE)</dt><dd>{{ modelo_info.mae|rs }}</dd></div>
+      <div><dt>R²</dt><dd>{{ '%.2f'|format(modelo_info.r2) }}</dd></div>
+    </dl>
+  {% else %}
+    <p>Nenhum modelo encontrado. Execute <code>python treinar.py</code> para treiná-lo.</p>
+  {% endif %}
+</section>
+  </main>
+  <footer class="rodape">Trabalho Final · Tema 06 · Preços em rúpias indianas (Rs)</footer>
 </body>
 </html>

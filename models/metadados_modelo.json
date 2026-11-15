@@ -1,0 +1,19 @@
+{
+    "modelo_escolhido": "Arvore de Decisao",
+    "variaveis_entrada": [
+        "year",
+        "km_driven",
+        "fuel",
+        "transmission"
+    ],
+    "variavel_alvo": "selling_price",
+    "registros_validos": 3415,
+    "registros_treino": 2732,
+    "registros_teste": 683,
+    "test_size": 0.2,
+    "random_state": 42,
+    "mae": 199639.87322494967,
+    "rmse": 414123.8279750584,
+    "r2": 0.5050158197156953,
+    "moeda": "INR - Rúpia Indiana"
+}
